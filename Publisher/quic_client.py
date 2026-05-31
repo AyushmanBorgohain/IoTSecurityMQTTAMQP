@@ -1,15 +1,17 @@
-# quic_client.py (Anti-Stutter Paced Version - Run on Node 2)
 import asyncio
 from aioquic.asyncio import connect
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.quic.events import StreamDataReceived
 from aioquic.asyncio.protocol import QuicConnectionProtocol
 
+#Configuration
 BROKER_IP = "10.0.2.8"
 QUIC_TARGET_PORT = 5673
 LOCAL_LISTEN_PORT = 5672
 
 ACTIVE_SESSIONS = {}
+
+#Used for establishing Client connection with the local proxy tunnel for sending AMQP packets over QUIC, which is not traditionally supported 
 
 class BidirectionalClientProxy(QuicConnectionProtocol):
     def quic_event_received(self, event):
