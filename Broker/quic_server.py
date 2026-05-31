@@ -1,16 +1,17 @@
-# quic_server.py (Anti-Stutter Paced Version - Run on Node 1)
 import asyncio
 from aioquic.asyncio import serve
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.quic.events import StreamDataReceived, HandshakeCompleted, ConnectionTerminated
 from aioquic.asyncio.protocol import QuicConnectionProtocol
 
+#Host is the own loopback for privacy of the packets being sent to be intercepted by this computer itself
 RABBITMQ_HOST = '127.0.0.1'
 RABBITMQ_PORT = 5672
 QUIC_LISTEN_PORT = 5673
 
 _END_OF_STREAM = object()
 
+#Session handling for AMQP proxy
 class AMQPSessionHandler:
     def __init__(self, stream_id, quic_protocol):
         self.stream_id = stream_id
@@ -60,13 +61,13 @@ class AMQPSessionHandler:
     async def _relay_from_rabbitmq(self):
         try:
             while True:
-                # THE FIX: 16KB anti-stutter chunks
+               
                 response = await self.rabbitmq_reader.read(16384) 
                 if not response: break
                 self.quic_protocol._quic.send_stream_data(self.stream_id, response, end_stream=False)
                 self.quic_protocol.transmit()
                 
-                # THE PACER
+                
                 if len(response)>4096:
                    await asyncio.sleep(0.002) 
         except asyncio.CancelledError: pass
